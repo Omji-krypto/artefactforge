@@ -1321,10 +1321,13 @@
       <span class="ec-tag">⚡ Acceso anticipado</span>
       <h2>30% de descuento<br>en el lanzamiento</h2>
       <p>Entra en la lista de fundadores. Precio bloqueado para siempre, acceso prioritario a cada nuevo artefacto.</p>
-      <div class="ec-form">
-        <input class="ec-input" type="email" placeholder="tu@email.com" />
-        <button class="ec-btn">Reservar mi plaza →</button>
-      </div>
+      <form class="ec-form" action="https://formspree.io/f/xplaceholder" method="POST" id="ec-form">
+        <input type="hidden" name="_subject" value="Nuevo lead ArtefactForge" />
+        <input type="hidden" name="_next" value="https://artefactforge.ai" />
+        <input class="ec-input" type="email" name="email" placeholder="tu@email.com" required />
+        <button type="submit" class="ec-btn">Reservar mi plaza →</button>
+      </form>
+      <p class="ec-note" id="ec-success" style="display:none;color:#4ade80;font-weight:700;">¡Reservado! Te avisaremos con tu 30% de descuento.</p>
       <p class="ec-note">Sin spam. Solo artefactos que importan. Cancela cuando quieras.</p>
     </div>
   </div>
@@ -1399,7 +1402,7 @@
           <li>Soporte dedicado</li>
           <li>Onboarding privado</li>
         </ul>
-        <a href="#email-capture" class="plan-btn outline">Contactar</a>
+        <a href="mailto:omar.jiz@hotmail.com?subject=ArtefactForge Teams" class="plan-btn outline">Contactar</a>
       </div>
     </div>
 
@@ -1493,6 +1496,34 @@
 </footer>
 
 <script>
+  // Formspree AJAX submit
+  const ecForm = document.getElementById('ec-form');
+  if (ecForm) {
+    ecForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = ecForm.querySelector('button');
+      btn.textContent = 'Enviando...';
+      btn.disabled = true;
+      try {
+        const res = await fetch(ecForm.action, {
+          method: 'POST',
+          body: new FormData(ecForm),
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          ecForm.style.display = 'none';
+          document.getElementById('ec-success').style.display = 'block';
+        } else {
+          btn.textContent = 'Error — intenta de nuevo';
+          btn.disabled = false;
+        }
+      } catch {
+        btn.textContent = 'Error — intenta de nuevo';
+        btn.disabled = false;
+      }
+    });
+  }
+
   // Fade-in on scroll
   const observer = new IntersectionObserver(
     (entries) => entries.forEach(e => {
