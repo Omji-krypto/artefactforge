@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArtefactForge — Build What Matters</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #080810;
+      --bg2:      #0d0d1a;
+      --surface:  rgba(255,255,255,0.04);
+      --border:   rgba(255,255,255,0.10);
+      --accent1:  #7c3aed;
+      --accent2:  #06b6d4;
+      --accent3:  #a855f7;
+      --glow1:    rgba(124,58,237,0.35);
+      --glow2:    rgba(6,182,212,0.25);
+      --text:     #e2e8f0;
+      --muted:    #94a3b8;
+      --r:        14px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Noise Overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0; opacity: .5;
+    }
+
+    /* ── Shared Layout ── */
+    .container { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+    section { position: relative; z-index: 1; }
+
+    /* ── Gradient blobs ── */
+    .blob {
+      position: absolute; border-radius: 50%;
+      filter: blur(120px); pointer-events: none; z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 18px 0;
+      background: rgba(8,8,16,0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    nav .inner {
+      max-width: 1160px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent3), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .logo span { color: var(--text); -webkit-text-fill-color: var(--text); opacity: .5; font-weight: 300; }
+    nav ul {
+      list-style: none; display: flex; gap: 32px;
+    }
+    nav ul li a {
+      font-size: .875rem; color: var(--muted);
+      transition: color .2s;
+    }
+    nav ul li a:hover { color: var(--text); }
+    .nav-cta {
+      padding: 9px 20px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      font-size: .875rem; font-weight: 600;
+      transition: opacity .2s, transform .15s;
+    }
+    .nav-cta:hover { opacity: .85; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      overflow: hidden;
+    }
+    #hero .blob1 {
+      width: 600px; height: 600px;
+      background: var(--accent1); opacity: .18;
+      top: 10%; left: -10%;
+    }
+    #hero .blob2 {
+      width: 500px; height: 500px;
+      background: var(--accent2); opacity: .12;
+      top: 20%; right: -8%;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 99px;
+      border: 1px solid rgba(124,58,237,.4);
+      background: rgba(124,58,237,.1);
+      font-size: .75rem; font-weight: 600;
+      letter-spacing: .08em; text-transform: uppercase;
+      color: var(--accent3);
+      margin-bottom: 28px;
+      animation: fadeUp .6s ease both;
+    }
+    .badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent3);
+      box-shadow: 0 0 8px var(--accent3);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: .4; }
+    }
+    h1 {
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+      animation: fadeUp .7s .1s ease both;
+    }
+    .h1-gradient {
+      background: linear-gradient(135deg, #fff 30%, var(--accent3) 60%, var(--accent2) 90%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub {
+      max-width: 560px; margin: 0 auto 44px;
+      font-size: 1.125rem; color: var(--muted);
+      animation: fadeUp .7s .2s ease both;
+    }
+    .hero-actions {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+      animation: fadeUp .7s .3s ease both;
+    }
+    .btn-primary {
+      padding: 14px 30px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      font-size: 1rem; font-weight: 700;
+      box-shadow: 0 0 40px var(--glow1);
+      transition: transform .15s, box-shadow .2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 60px var(--glow1); }
+    .btn-ghost {
+      padding: 14px 30px; border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 1rem; font-weight: 600;
+      backdrop-filter: blur(10px);
+      transition: border-color .2s, transform .15s;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,.2); transform: translateY(-2px); }
+
+    /* hero grid visual */
+    .hero-grid {
+      margin-top: 80px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+      animation: fadeUp .7s .45s ease both;
+    }
+    .hg-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px;
+      text-align: left;
+      backdrop-filter: blur(10px);
+      transition: border-color .25s, transform .25s;
+    }
+    .hg-card:hover { border-color: rgba(124,58,237,.5); transform: translateY(-4px); }
+    .hg-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+    .hg-card h4 { font-size: .9rem; font-weight: 700; margin-bottom: 4px; }
+    .hg-card p { font-size: .78rem; color: var(--muted); }
+
+    /* ── SECTION SHARED ── */
+    .section-header {
+      text-align: center; margin-bottom: 64px;
+    }
+    .section-tag {
+      display: inline-block;
+      font-size: .7rem; font-weight: 700;
+      letter-spacing: .15em; text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 12px;
+    }
+    .section-header h2 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800; letter-spacing: -1px;
+      margin-bottom: 14px;
+    }
+    .section-header p {
+      max-width: 520px; margin: 0 auto;
+      color: var(--muted); font-size: 1.05rem;
+    }
+
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: var(--r);
+      padding: 28px;
+      transition: border-color .25s, transform .25s, box-shadow .25s;
+      position: relative; overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 60%, rgba(124,58,237,.05));
+      pointer-events: none;
+    }
+    .card:hover {
+      border-color: rgba(124,58,237,.45);
+      transform: translateY(-5px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.4), 0 0 40px var(--glow1);
+    }
+    .card-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 16px;
+    }
+    .card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .card p { font-size: .875rem; color: var(--muted); }
+
+    /* icon bg variants */
+    .ic-purple { background: rgba(124,58,237,.15); }
+    .ic-cyan   { background: rgba(6,182,212,.15); }
+    .ic-pink   { background: rgba(236,72,153,.15); }
+    .ic-green  { background: rgba(34,197,94,.15); }
+    .ic-orange { background: rgba(249,115,22,.15); }
+    .ic-blue   { background: rgba(59,130,246,.15); }
+
+    /* ── WHY ── */
+    #why { padding: 80px 0; background: var(--bg2); }
+    .why-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+      border-radius: var(--r); overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .why-cell {
+      background: var(--surface);
+      padding: 48px 36px;
+      text-align: center;
+      transition: background .2s;
+      position: relative;
+    }
+    .why-cell:hover { background: rgba(255,255,255,.055); }
+    .why-cell::after {
+      content: '';
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 60%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent1), transparent);
+    }
+    .why-stat {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 900; letter-spacing: -1.5px;
+      background: linear-gradient(135deg, #fff 20%, var(--accent3) 60%, var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      line-height: 1; margin-bottom: 12px;
+    }
+    .why-cell h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .why-cell p { font-size: .85rem; color: var(--muted); }
+    @media (max-width: 700px) {
+      .why-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── STACK CHINO TABLE ── */
+    #stack-chino { padding: 100px 0; background: var(--bg2); position: relative; z-index: 1; }
+    .sc-table-wrap {
+      overflow-x: auto;
+      border-radius: var(--r);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .sc-table {
+      width: 100%; border-collapse: collapse;
+      background: rgba(255,255,255,.03);
+      font-size: .9rem;
+    }
+    .sc-table th {
+      padding: 16px 20px; text-align: left;
+      font-size: .7rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .sc-table th:nth-child(2) { color: #f87171; }
+    .sc-table th:nth-child(3) { color: #4ade80; }
+    .sc-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      color: var(--muted);
+      transition: background .15s;
+    }
+    .sc-table tr:last-child td { border-bottom: none; }
+    .sc-table tr:hover td { background: rgba(255,255,255,.03); }
+    .sc-table td:first-child { color: var(--text); font-weight: 600; }
+    .sc-table td:nth-child(2) { background: rgba(239,68,68,.04); }
+    .sc-table td:nth-child(3) { background: rgba(34,197,94,.04); color: var(--text); }
+    .sc-note {
+      text-align: center; margin-top: 20px;
+      font-size: .8rem; color: var(--muted);
+      padding: 12px 20px;
+      background: rgba(124,58,237,.08);
+      border: 1px solid rgba(124,58,237,.2);
+      border-radius: 10px;
+    }
+
+    /* ── SKILLS ── */
+    #skills { padding: 120px 0; }
+    #skills .blob { width: 500px; height: 500px; background: var(--accent1); opacity: .1; top: 0; right: -100px; }
+    .skill-card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: var(--r);
+      padding: 24px;
+      transition: border-color .25s, transform .25s, box-shadow .25s;
+      position: relative; overflow: hidden;
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .skill-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 60%, rgba(124,58,237,.05));
+      pointer-events: none;
+    }
+    .skill-card:hover {
+      border-color: rgba(124,58,237,.5);
+      transform: translateY(-5px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.4), 0 0 40px var(--glow1);
+    }
+    .skill-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+    .skill-price {
+      font-size: 1.5rem; font-weight: 900; letter-spacing: -1px;
+      background: linear-gradient(135deg, #fff, var(--accent3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .skill-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .skill-badge {
+      padding: 3px 9px; border-radius: 99px;
+      font-size: .65rem; font-weight: 700;
+      border: 1px solid;
+    }
+    .sb-n8n    { background: rgba(255,104,16,.1);  border-color: rgba(255,104,16,.3);  color: #fb923c; }
+    .sb-claude { background: rgba(6,182,212,.1);   border-color: rgba(6,182,212,.3);   color: var(--accent2); }
+    .sb-auto   { background: rgba(34,197,94,.1);   border-color: rgba(34,197,94,.3);   color: #4ade80; }
+    .sb-meta   { background: rgba(59,130,246,.1);  border-color: rgba(59,130,246,.3);  color: #60a5fa; }
+    .sb-nodes  { background: rgba(168,85,247,.1);  border-color: rgba(168,85,247,.3);  color: var(--accent3); }
+    .skill-card h3 { font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
+    .skill-card p { font-size: .82rem; color: var(--muted); flex: 1; margin-bottom: 16px; }
+    .skill-cta {
+      display: block; width: 100%; padding: 10px;
+      text-align: center; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      font-size: .82rem; font-weight: 700; color: #fff;
+      cursor: pointer; border: none;
+      transition: opacity .2s, transform .15s;
+      box-shadow: 0 0 20px var(--glow1);
+    }
+    .skill-cta:hover { opacity: .85; transform: translateY(-1px); }
+
+    /* ── PROMPTS ── */
+    #prompts { padding: 120px 0; background: var(--bg2); }
+    .prompt-card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: var(--r);
+      padding: 24px;
+      transition: border-color .25s, transform .2s;
+      cursor: pointer;
+    }
+    .prompt-card:hover { border-color: rgba(6,182,212,.5); transform: translateY(-4px); }
+    .prompt-tag {
+      display: inline-block; padding: 3px 10px; border-radius: 99px;
+      font-size: .7rem; font-weight: 700; margin-bottom: 12px;
+      border: 1px solid;
+    }
+    .tag-purple { background: rgba(124,58,237,.15); border-color: rgba(124,58,237,.4); color: var(--accent3); }
+    .tag-cyan   { background: rgba(6,182,212,.15);  border-color: rgba(6,182,212,.4);  color: var(--accent2); }
+    .tag-pink   { background: rgba(236,72,153,.15); border-color: rgba(236,72,153,.4); color: #f472b6; }
+    .prompt-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .prompt-card p { font-size: .83rem; color: var(--muted); margin-bottom: 14px; }
+    .prompt-meta { display: flex; gap: 16px; margin-bottom: 16px; }
+    .prompt-meta span { font-size: .75rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+    .prompt-price {
+      font-size: 1.4rem; font-weight: 900; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #fff 20%, var(--accent3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .btn-pack {
+      display: inline-block; padding: 9px 18px; border-radius: 8px;
+      background: rgba(6,182,212,.12); border: 1px solid rgba(6,182,212,.3);
+      font-size: .8rem; font-weight: 700; color: var(--accent2);
+      cursor: pointer; transition: background .2s, transform .15s;
+    }
+    .btn-pack:hover { background: rgba(6,182,212,.22); transform: translateY(-1px); }
+
+    /* ── PRICING URGENCY ── */
+    .urgency-banner {
+      max-width: 980px; margin: 0 auto 36px;
+      padding: 16px 24px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(124,58,237,.25), rgba(6,182,212,.12));
+      border: 1px solid rgba(124,58,237,.4);
+      display: flex; align-items: center; justify-content: center; gap: 14px;
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+    @keyframes glow-pulse {
+      0%,100% { box-shadow: 0 0 20px rgba(124,58,237,.2); }
+      50%      { box-shadow: 0 0 40px rgba(124,58,237,.4); }
+    }
+    .urgency-banner .fire { font-size: 1.3rem; }
+    .urgency-cupos {
+      font-size: 2rem; font-weight: 900; color: #fff;
+      line-height: 1; letter-spacing: -1px;
+    }
+    .urgency-banner p { font-size: .9rem; color: var(--muted); }
+    .urgency-banner strong { color: var(--text); }
+    .pricing-guarantee {
+      text-align: center; margin-top: 40px;
+      padding: 16px 24px; border-radius: 10px;
+      background: rgba(34,197,94,.06); border: 1px solid rgba(34,197,94,.2);
+      max-width: 500px; margin: 40px auto 0;
+      font-size: .875rem; color: var(--muted);
+    }
+    .pricing-guarantee strong { color: #4ade80; }
+
+    /* ── COMUNIDAD STATS ── */
+    .com-stats {
+      display: flex; gap: 32px; justify-content: center; flex-wrap: wrap;
+      margin-top: 36px; padding-top: 28px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .com-stat { text-align: center; }
+    .com-stat strong { display: block; font-size: 1.1rem; font-weight: 800; color: var(--text); }
+    .com-stat span { font-size: .78rem; color: var(--muted); }
+
+    /* ── WORKFLOWS ── */
+    #workflows { padding: 120px 0; }
+    #workflows .blob { width: 600px; height: 600px; background: var(--accent2); opacity: .08; bottom: 0; left: -150px; }
+    .workflow-steps {
+      display: flex; flex-direction: column; gap: 0;
+      max-width: 720px; margin: 0 auto;
+    }
+    .wf-step {
+      display: flex; gap: 24px; align-items: flex-start;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .wf-step:last-child { border-bottom: none; }
+    .wf-num {
+      flex-shrink: 0;
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: .9rem;
+      box-shadow: 0 0 20px var(--glow1);
+    }
+    .wf-info h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+    .wf-info p { font-size: .875rem; color: var(--muted); }
+    .wf-badge {
+      margin-left: auto; flex-shrink: 0;
+      padding: 4px 12px; border-radius: 99px;
+      font-size: .7rem; font-weight: 700;
+      background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.3); color: #4ade80;
+    }
+
+    .workflow-visual {
+      margin-top: 64px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+      border-radius: var(--r); overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .wv-cell {
+      background: var(--surface);
+      padding: 28px 24px;
+      transition: background .2s;
+    }
+    .wv-cell:hover { background: rgba(255,255,255,.06); }
+    .wv-cell .num { font-size: 2rem; font-weight: 900; color: var(--accent3); opacity: .3; }
+    .wv-cell h5 { font-size: .95rem; font-weight: 700; margin: 4px 0; }
+    .wv-cell p { font-size: .8rem; color: var(--muted); }
+
+    /* ── TEMPLATES ── */
+    #templates { padding: 120px 0; background: var(--bg2); }
+    .template-card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: var(--r);
+      overflow: hidden;
+      transition: border-color .25s, transform .25s;
+    }
+    .template-card:hover { border-color: rgba(168,85,247,.5); transform: translateY(-5px); }
+    .tc-preview {
+      height: 160px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem;
+      position: relative; overflow: hidden;
+    }
+    .tc-p1 { background: linear-gradient(135deg, #1e0a3c, #2d1b69); }
+    .tc-p2 { background: linear-gradient(135deg, #0a1e2e, #0c3547); }
+    .tc-p3 { background: linear-gradient(135deg, #1a0a2e, #3b0764); }
+    .tc-p4 { background: linear-gradient(135deg, #0a2e1a, #065f46); }
+    .tc-p5 { background: linear-gradient(135deg, #2e1a0a, #7c2d12); }
+    .tc-p6 { background: linear-gradient(135deg, #0a102e, #1e3a8a); }
+    .tc-preview::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.07), transparent 70%);
+    }
+    .tc-body { padding: 20px; }
+    .tc-body h4 { font-size: .95rem; font-weight: 700; margin-bottom: 6px; }
+    .tc-body p { font-size: .8rem; color: var(--muted); margin-bottom: 14px; }
+    .tc-footer {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .tc-price { font-size: .85rem; font-weight: 700; color: var(--accent2); }
+    .tc-btn {
+      padding: 6px 14px; border-radius: 7px;
+      background: rgba(124,58,237,.2); border: 1px solid rgba(124,58,237,.35);
+      font-size: .75rem; font-weight: 700; color: var(--accent3);
+      cursor: pointer; transition: background .2s;
+    }
+    .tc-btn:hover { background: rgba(124,58,237,.35); }
+
+    /* ── PRICING ── */
+    #pricing {
+      padding: 120px 0;
+      position: relative; overflow: hidden;
+    }
+    #pricing .blob1 { width: 700px; height: 700px; background: var(--accent1); opacity: .08; top: -200px; left: 50%; transform: translateX(-50%); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px; max-width: 980px; margin: 0 auto;
+    }
+    .pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 36px 32px;
+      position: relative; overflow: hidden;
+      transition: transform .25s, box-shadow .25s;
+    }
+    .pricing-card.featured {
+      border-color: rgba(124,58,237,.6);
+      background: rgba(124,58,237,.07);
+      box-shadow: 0 0 60px rgba(124,58,237,.15);
+    }
+    .pricing-card:hover { transform: translateY(-6px); box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+    .featured-badge {
+      position: absolute; top: 20px; right: 20px;
+      padding: 4px 12px; border-radius: 99px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      font-size: .7rem; font-weight: 700;
+    }
+    .plan-name { font-size: .75rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .plan-price {
+      font-size: 3.5rem; font-weight: 900; letter-spacing: -2px;
+      line-height: 1; margin-bottom: 4px;
+    }
+    .plan-price sup { font-size: 1.5rem; vertical-align: top; margin-top: 10px; font-weight: 400; }
+    .plan-price sub { font-size: .9rem; font-weight: 400; color: var(--muted); }
+    .plan-desc { font-size: .875rem; color: var(--muted); margin-bottom: 28px; }
+    .plan-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+    .plan-features li {
+      display: flex; align-items: center; gap: 10px;
+      font-size: .875rem;
+    }
+    .plan-features li::before {
+      content: '✓'; width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.3);
+      color: #4ade80; display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; font-weight: 900; flex-shrink: 0;
+      text-align: center; line-height: 20px;
+    }
+    .plan-features li.dim { color: var(--muted); }
+    .plan-features li.dim::before { background: rgba(255,255,255,.05); border-color: var(--border); color: var(--muted); content: '–'; }
+    .plan-btn {
+      display: block; width: 100%;
+      padding: 14px; border-radius: 10px; text-align: center;
+      font-size: .95rem; font-weight: 700;
+      transition: opacity .2s, transform .15s;
+      cursor: pointer; border: none;
+    }
+    .plan-btn.outline {
+      background: transparent; border: 1px solid var(--border); color: var(--text);
+    }
+    .plan-btn.outline:hover { border-color: rgba(255,255,255,.25); transform: translateY(-1px); }
+    .plan-btn.filled {
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #fff;
+      box-shadow: 0 0 30px var(--glow1);
+    }
+    .plan-btn.filled:hover { opacity: .9; transform: translateY(-2px); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: transparent;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 80px 0 40px;
+      position: relative; z-index: 1;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px; margin-bottom: 64px;
+    }
+    .footer-brand .logo { font-size: 1.4rem; display: block; margin-bottom: 14px; }
+    .footer-brand p { font-size: .875rem; color: var(--muted); max-width: 260px; line-height: 1.7; }
+    .footer-social { display: flex; gap: 10px; margin-top: 20px; }
+    .social-btn {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; transition: border-color .2s, background .2s;
+    }
+    .social-btn:hover { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.07); }
+    .footer-col h5 { font-size: .8rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-col ul li a { font-size: .875rem; color: var(--muted); transition: color .2s; }
+    .footer-col ul li a:hover { color: var(--text); }
+    .footer-bottom {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: 24px; border-top: 1px solid var(--border);
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-bottom p { font-size: .8rem; color: var(--muted); }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { font-size: .8rem; color: var(--muted); transition: color .2s; }
+    .footer-links a:hover { color: var(--text); }
+
+    /* ── SOCIAL PROOF ── */
+    #social-proof {
+      padding: 100px 0;
+      background: linear-gradient(180deg, var(--bg) 0%, rgba(124,58,237,.04) 50%, var(--bg) 100%);
+      position: relative; z-index: 1;
+    }
+    .sp-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+    .sp-card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px;
+      padding: 36px 32px;
+      position: relative; overflow: hidden;
+      transition: transform .25s, border-color .25s, box-shadow .25s;
+    }
+    .sp-card::before {
+      content: '"';
+      position: absolute; top: 16px; right: 24px;
+      font-size: 6rem; font-weight: 900; line-height: 1;
+      color: var(--accent3); opacity: .08;
+      font-family: Georgia, serif;
+    }
+    .sp-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(124,58,237,.4);
+      box-shadow: 0 24px 60px rgba(0,0,0,.45), 0 0 40px var(--glow1);
+    }
+    .sp-result {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 900; letter-spacing: -1px;
+      background: linear-gradient(135deg, #fff 20%, var(--accent3) 60%, var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 8px; line-height: 1.15;
+    }
+    .sp-card p { font-size: .9rem; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+    .sp-author { display: flex; align-items: center; gap: 10px; }
+    .sp-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem; font-weight: 800; flex-shrink: 0;
+    }
+    .sp-author-info { font-size: .8rem; }
+    .sp-author-info strong { display: block; font-weight: 700; }
+    .sp-author-info span { color: var(--muted); font-size: .75rem; }
+    @media (max-width: 760px) { .sp-grid { grid-template-columns: 1fr; } }
+
+    /* ── EMAIL CAPTURE ── */
+    #email-capture {
+      padding: 100px 0;
+      background: linear-gradient(135deg, rgba(76,29,149,.25) 0%, rgba(15,15,30,.8) 50%, rgba(5,182,212,.08) 100%);
+      border-top: 1px solid rgba(124,58,237,.2);
+      border-bottom: 1px solid rgba(124,58,237,.2);
+      position: relative; overflow: hidden; z-index: 1;
+    }
+    #email-capture .blob-ec {
+      position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none;
+      width: 500px; height: 500px; background: var(--accent1); opacity: .12;
+      top: -100px; left: 50%; transform: translateX(-50%);
+    }
+    .ec-inner { max-width: 640px; margin: 0 auto; text-align: center; position: relative; z-index: 1; }
+    .ec-tag {
+      display: inline-block; padding: 4px 14px; border-radius: 99px;
+      background: rgba(168,85,247,.2); border: 1px solid rgba(168,85,247,.4);
+      color: var(--accent3); font-size: .7rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .ec-inner h2 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 900; letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+    .ec-inner p { color: var(--muted); margin-bottom: 36px; font-size: 1rem; }
+    .ec-form { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .ec-input {
+      flex: 1 1 280px;
+      padding: 15px 20px; border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: var(--text); font-size: .95rem;
+      outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+    .ec-input::placeholder { color: rgba(255,255,255,.3); }
+    .ec-input:focus {
+      border-color: rgba(168,85,247,.6);
+      box-shadow: 0 0 0 3px rgba(124,58,237,.15);
+    }
+    .ec-btn {
+      padding: 15px 28px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #fff; font-size: .95rem; font-weight: 700;
+      border: none; cursor: pointer; white-space: nowrap;
+      box-shadow: 0 0 30px var(--glow1), 0 0 60px rgba(6,182,212,.15);
+      transition: transform .15s, box-shadow .2s;
+    }
+    .ec-btn:hover { transform: translateY(-2px); box-shadow: 0 0 50px var(--glow1); }
+    .ec-note { margin-top: 14px; font-size: .75rem; color: var(--muted); }
+
+    /* ── COMUNIDAD ── */
+    #comunidad {
+      padding: 100px 0;
+      background: var(--bg2);
+      position: relative; z-index: 1;
+      overflow: hidden;
+    }
+    #comunidad .blob-c {
+      position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none;
+      width: 600px; height: 400px; background: var(--accent3); opacity: .07;
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+    }
+    .com-inner { max-width: 700px; margin: 0 auto; text-align: center; position: relative; z-index: 1; }
+    .com-inner .section-tag { color: var(--accent3); }
+    .com-inner h2 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 900; letter-spacing: -1px; margin-bottom: 14px;
+    }
+    .com-subtitle {
+      font-size: 1.5rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent3), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      display: block; margin-bottom: 16px;
+    }
+    .com-inner p { color: var(--muted); margin-bottom: 40px; font-size: 1rem; }
+    .com-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-discord {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 10px;
+      background: #5865F2;
+      color: #fff; font-size: 1rem; font-weight: 700;
+      transition: opacity .2s, transform .15s;
+      box-shadow: 0 0 30px rgba(88,101,242,.4);
+    }
+    .btn-discord:hover { opacity: .9; transform: translateY(-2px); }
+    .btn-prelude {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 10px;
+      background: rgba(168,85,247,.12);
+      border: 1px solid rgba(168,85,247,.4);
+      color: var(--accent3); font-size: 1rem; font-weight: 700;
+      transition: background .2s, transform .15s;
+    }
+    .btn-prelude:hover { background: rgba(168,85,247,.22); transform: translateY(-2px); }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: repeat(2, 1fr); }
+      .workflow-visual { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      nav ul { display: none; }
+      .hero-grid { grid-template-columns: 1fr 1fr; }
+      .workflow-visual { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="inner">
+    <span class="logo">Artefact<span>Forge</span></span>
+    <ul>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#prompts">Prompts</a></li>
+      <li><a href="#workflows">Workflows</a></li>
+      <li><a href="#templates">Templates</a></li>
+      <li><a href="#pricing">Precios</a></li>
+    </ul>
+    <a href="#pricing" class="nav-cta">Comenzar gratis</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="container">
+    <div class="badge">🔮 Stack chino exclusivo — MiniMax · GLM-5 · Kimi</div>
+    <h1>
+      <span class="h1-gradient">Forja los artefactos</span><br>
+      de IA que nadie<br>más tiene
+    </h1>
+    <p class="hero-sub">
+      La primera plataforma hispanohablante de skills agénticos, prompts, workflows y templates con stack chino. Lo que Occidente no usa, nosotros lo dominamos.
+    </p>
+    <div class="hero-actions">
+      <a href="#pricing" class="btn-primary">Empieza ahora — Es gratis</a>
+      <a href="#workflows" class="btn-ghost">Ver cómo funciona →</a>
+    </div>
+
+    <div class="hero-grid fade-in">
+      <div class="hg-card">
+        <div class="hg-icon ic-purple">⚡</div>
+        <h4>Skills IA</h4>
+        <p>Capacidades modulares listas para activar</p>
+      </div>
+      <div class="hg-card">
+        <div class="hg-icon ic-cyan">💬</div>
+        <h4>Prompts Pro</h4>
+        <p>Instrucciones afinadas para cada caso de uso</p>
+      </div>
+      <div class="hg-card">
+        <div class="hg-icon ic-pink">🔄</div>
+        <h4>Workflows</h4>
+        <p>Automatiza cualquier pipeline de creación</p>
+      </div>
+      <div class="hg-card">
+        <div class="hg-icon ic-green">📐</div>
+        <h4>Templates</h4>
+        <p>Estructuras reutilizables para cada proyecto</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- POR QUÉ ARTEFACTFORGE -->
+<section id="why">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">// Por qué ArtefactForge</span>
+      <h2>La ventaja que el mercado<br>hispanohablante no tenía</h2>
+      <p>Tres razones por las que somos la plataforma que faltaba.</p>
+    </div>
+    <div class="why-grid fade-in">
+      <div class="why-cell">
+        <div class="why-stat">600M</div>
+        <h4>Hispanohablantes sin plataforma líder</h4>
+        <p>El mayor mercado de habla hispana nunca tuvo una plataforma de artefactos IA de referencia. Hasta ahora.</p>
+      </div>
+      <div class="why-cell">
+        <div class="why-stat">10x</div>
+        <h4>Más barato con stack chino</h4>
+        <p>MiniMax, GLM-5 y Kimi ofrecen capacidades de frontera a una fracción del coste de los modelos occidentales.</p>
+      </div>
+      <div class="why-cell">
+        <div class="why-stat">ES+EN+ZH</div>
+        <h4>Primera plataforma trilingüe</h4>
+        <p>Artefactos, prompts y workflows optimizados en español, inglés y chino. El único bridge real entre los dos mundos IA.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section id="social-proof">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">// Resultados reales</span>
+      <h2>Lo que ya está pasando<br>con ArtefactForge</h2>
+      <p>Números reales de creadores que ya dominan el stack.</p>
+    </div>
+    <div class="sp-grid fade-in">
+      <div class="sp-card">
+        <div class="sp-result">170 ventas · 3.230€</div>
+        <p>Pack de Prompts vendido en Gumroad. Sin anuncios, sin equipo. Solo el artefacto correcto en el momento correcto.</p>
+        <div class="sp-author">
+          <div class="sp-avatar">AF</div>
+          <div class="sp-author-info">
+            <strong>Creador ArtefactForge</strong>
+            <span>3 días · Gumroad</span>
+          </div>
+        </div>
+      </div>
+      <div class="sp-card">
+        <div class="sp-result">100 solicitudes<br>en 60 minutos</div>
+        <p>Workflow de contacto automatizado con GLM-5 en WeChat. Lo que Occidente no puede replicar, nosotros ya lo ejecutamos.</p>
+        <div class="sp-author">
+          <div class="sp-avatar">ZY</div>
+          <div class="sp-author-info">
+            <strong>Zhang Yang</strong>
+            <span>Guangdong, China</span>
+          </div>
+        </div>
+      </div>
+      <div class="sp-card">
+        <div class="sp-result">10.000€/mes</div>
+        <p>Solo con plantillas digitales y un sistema de distribución automatizado. El modelo que Motionsites.ai demostró que funciona.</p>
+        <div class="sp-author">
+          <div class="sp-avatar">MS</div>
+          <div class="sp-author-info">
+            <strong>Referencia de mercado</strong>
+            <span>Motionsites.ai · Templates</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STACK CHINO -->
+<section id="stack-chino">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">// Por qué Stack Chino</span>
+      <h2>Misma calidad. 10–20x<br>más barato.</h2>
+      <p>Los modelos chinos procesan el 61% del tráfico global de IA. Nosotros los usamos para que tú pagues menos.</p>
+    </div>
+    <div class="sc-table-wrap fade-in">
+      <table class="sc-table">
+        <thead>
+          <tr>
+            <th>Tarea</th>
+            <th>🌐 Herramienta Occidental</th>
+            <th>🇨🇳 Stack Chino (ArtefactForge)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Generación de vídeo</td>
+            <td>Runway — $15/mes</td>
+            <td>MiniMax — $0.30 / 1M tokens</td>
+          </tr>
+          <tr>
+            <td>Texto y código</td>
+            <td>GPT-4o — $20/mes</td>
+            <td>DeepSeek / Qwen — Gratis</td>
+          </tr>
+          <tr>
+            <td>Traducción ES ↔ ZH</td>
+            <td>DeepL Pro — $25/mes</td>
+            <td>Qwen 2.5 — Gratis</td>
+          </tr>
+          <tr>
+            <td>Voz y audio</td>
+            <td>ElevenLabs — $22/mes</td>
+            <td>Fish Audio — $5/mes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sc-note fade-in">No es piratería. Son modelos open-source con licencias comerciales. Usados por el 61% del tráfico global de IA.</p>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="blob"></div>
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">// Skills Agénticos</span>
+      <h2>Sistemas completos<br>listos para usar</h2>
+      <p>No son prompts sueltos. Son workflows configurados con 10–20 nodos, APIs conectadas y lógica de negocio real.</p>
+    </div>
+    <div class="grid-4 fade-in">
+
+      <div class="skill-card">
+        <div class="skill-top">
+          <span style="font-size:1.6rem">🇨🇳</span>
+          <span class="skill-price">49€</span>
+        </div>
+        <div class="skill-badges">
+          <span class="skill-badge sb-n8n">n8n</span>
+          <span class="skill-badge sb-nodes">15 nodos</span>
+        </div>
+        <h3>China Sourcer Pro</h3>
+        <p>Busca proveedores en 1688 y Alibaba, compara precios, calcula costes de importación y genera informe PDF automático.</p>
+        <button class="skill-cta">Obtener skill →</button>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-top">
+          <span style="font-size:1.6rem">🎬</span>
+          <span class="skill-price">59€</span>
+        </div>
+        <div class="skill-badges">
+          <span class="skill-badge sb-auto">Workflow completo</span>
+          <span class="skill-badge sb-nodes">12 APIs</span>
+        </div>
+        <h3>Microdrama Director</h3>
+        <p>Genera guión con GLM-5, storyboard visual, voiceover con Fish Audio y vídeo corto con MiniMax. Un equipo de producción en un workflow.</p>
+        <button class="skill-cta">Obtener skill →</button>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-top">
+          <span style="font-size:1.6rem">📄</span>
+          <span class="skill-price">39€</span>
+        </div>
+        <div class="skill-badges">
+          <span class="skill-badge sb-claude">Agente Claude Code</span>
+        </div>
+        <h3>CV Analyzer Elite</h3>
+        <p>Analiza CVs masivamente, puntúa candidatos según criterios configurables y genera informes de RRHH listos para enviar.</p>
+        <button class="skill-cta">Obtener skill →</button>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-top">
+          <span style="font-size:1.6rem">⚙️</span>
+          <span class="skill-price">69€</span>
+        </div>
+        <div class="skill-badges">
+          <span class="skill-badge sb-n8n">Meta-workflow</span>
+          <span class="skill-badge sb-nodes">20 nodos</span>
+        </div>
+        <h3>n8n Workflow Builder</h3>
+        <p>Crea otros workflows de n8n con lenguaje natural. Describe lo que necesitas y el agente genera el JSON listo para importar.</p>
+        <button class="skill-cta">Obtener skill →</button>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-top">
+          <span style="font-size:1.6rem">📣</span>
+          <span class="skill-price">45€</span>
+        </div>
+        <div class="skill-badges">
+          <span class="skill-badge sb-meta">Automatización</span>
+          <span class="skill-badge sb-nodes">8 APIs</span>
+        </div>
+        <h3>Meta Ads Manager</h3>
+        <p>Gestiona campañas de Meta Ads con IA desde un solo dashboard: copies, audiencias, pujas y reportes automáticos.</p>
+        <button class="skill-cta">Obtener skill →</button>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-top">
+          <span style="font-size:1.6rem">🧠</span>
+          <span class="skill-price">35€</span>
+        </div>
+        <div class="skill-badges">
+          <span class="skill-badge sb-claude">Skill Claude Code</span>
+        </div>
+        <h3>Memory System v3.0</h3>
+        <p>Sistema de memoria persistente para Claude Code. Mantiene contexto entre sesiones y construye conocimiento acumulativo.</p>
+        <button class="skill-cta">Obtener skill →</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PROMPTS -->
+<section id="prompts">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">// Packs de Prompts</span>
+      <h2>El complemento perfecto<br>a tus skills</h2>
+      <p>Colecciones curadas y testeadas. No los encuentras gratis porque están optimizados para modelos específicos.</p>
+    </div>
+    <div class="grid-3 fade-in">
+
+      <div class="prompt-card">
+        <span class="prompt-tag tag-pink">Música IA</span>
+        <div class="prompt-price">19€</div>
+        <h4>100 Prompts Suno AI</h4>
+        <p>Genera música profesional con prompts testeados en 50+ géneros. Incluye estructuras, emociones, estilos y técnicas avanzadas de composición IA.</p>
+        <div class="prompt-meta">
+          <span>⭐ 4.9</span>
+          <span>📦 100 prompts</span>
+          <span>↓ 3.8k usos</span>
+        </div>
+        <a href="#" class="btn-pack">Ver pack →</a>
+      </div>
+
+      <div class="prompt-card">
+        <span class="prompt-tag tag-cyan">Desarrollo</span>
+        <div class="prompt-price">39€</div>
+        <h4>Prompts Claude Code Pro</h4>
+        <p>87 prompts para desarrollo, refactoring y debugging con Claude Code. De nivel junior a senior en una colección ordenada por caso de uso.</p>
+        <div class="prompt-meta">
+          <span>⭐ 5.0</span>
+          <span>📦 87 prompts</span>
+          <span>↓ 2.1k usos</span>
+        </div>
+        <a href="#" class="btn-pack">Ver pack →</a>
+      </div>
+
+      <div class="prompt-card">
+        <span class="prompt-tag tag-purple">Stack Chino</span>
+        <div class="prompt-price">29€</div>
+        <h4>MiniMax Video Mastery</h4>
+        <p>Pack completo para generación de vídeo con MiniMax — el modelo más usado del mundo. Incluye 65 prompts con ejemplos de output reales.</p>
+        <div class="prompt-meta">
+          <span>⭐ 4.8</span>
+          <span>📦 65 prompts</span>
+          <span>↓ 1.6k usos</span>
+        </div>
+        <a href="#" class="btn-pack">Ver pack →</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- WORKFLOWS -->
+<section id="workflows">
+  <div class="blob"></div>
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">// Workflows</span>
+      <h2>Flujos que convierten ideas<br>en resultados</h2>
+      <p>Pipelines de trabajo prediseñados para los procesos más comunes de creación y producción.</p>
+    </div>
+
+    <div class="workflow-steps fade-in">
+      <div class="wf-step">
+        <div class="wf-num">01</div>
+        <div class="wf-info">
+          <h4>Captura y Contexto</h4>
+          <p>Define el objetivo, audiencia y restricciones del artefacto que necesitas crear. El sistema construye el contexto óptimo de forma automática.</p>
+        </div>
+        <span class="wf-badge">Auto</span>
+      </div>
+      <div class="wf-step">
+        <div class="wf-num">02</div>
+        <div class="wf-info">
+          <h4>Selección de Skills</h4>
+          <p>El motor selecciona y combina las habilidades más apropiadas para tu caso, o tú eliges manualmente de la biblioteca completa.</p>
+        </div>
+        <span class="wf-badge">Smart</span>
+      </div>
+      <div class="wf-step">
+        <div class="wf-num">03</div>
+        <div class="wf-info">
+          <h4>Generación Iterativa</h4>
+          <p>Produce versiones, evalúa resultados y refina con feedback en ciclos rápidos. Cada iteración mejora con memoria contextual.</p>
+        </div>
+        <span class="wf-badge">Iterativo</span>
+      </div>
+      <div class="wf-step">
+        <div class="wf-num">04</div>
+        <div class="wf-info">
+          <h4>Entrega y Exportación</h4>
+          <p>Exporta el artefacto final en el formato que necesites: Markdown, PDF, código, JSON o directamente a tus herramientas conectadas.</p>
+        </div>
+        <span class="wf-badge">Multi-formato</span>
+      </div>
+    </div>
+
+    <div class="workflow-visual fade-in">
+      <div class="wv-cell">
+        <div class="num">12</div>
+        <h5>Workflows activos</h5>
+        <p>Listos para usar</p>
+      </div>
+      <div class="wv-cell">
+        <div class="num">3x</div>
+        <h5>Más rápido</h5>
+        <p>Vs. proceso manual</p>
+      </div>
+      <div class="wv-cell">
+        <div class="num">98%</div>
+        <h5>Satisfacción</h5>
+        <p>Usuarios activos</p>
+      </div>
+      <div class="wv-cell">
+        <div class="num">∞</div>
+        <h5>Personalizable</h5>
+        <p>Adapta cada paso</p>
+      </div>
+      <div class="wv-cell">
+        <div class="num">24h</div>
+        <h5>Disponible</h5>
+        <p>Sin interrupciones</p>
+      </div>
+      <div class="wv-cell">
+        <div class="num">API</div>
+        <h5>Integraciones</h5>
+        <p>Conecta tus apps</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEMPLATES -->
+<section id="templates">
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">// Templates</span>
+      <h2>Estructuras que te dan<br>ventaja desde el día uno</h2>
+      <p>Plantillas profesionales construidas sobre los mejores patrones de diseño y producción.</p>
+    </div>
+    <div class="grid-3 fade-in">
+      <div class="template-card">
+        <div class="tc-preview tc-p1">🚀</div>
+        <div class="tc-body">
+          <h4>SaaS Launch Kit</h4>
+          <p>Landing, onboarding, emails de activación y dashboard inicial para lanzar en 7 días.</p>
+          <div class="tc-footer">
+            <span class="tc-price">Gratis</span>
+            <span class="tc-btn">Usar →</span>
+          </div>
+        </div>
+      </div>
+      <div class="template-card">
+        <div class="tc-preview tc-p2">📋</div>
+        <div class="tc-body">
+          <h4>Product Spec Completo</h4>
+          <p>Documento de especificación técnica con PRD, casos de uso, wireframes y métricas.</p>
+          <div class="tc-footer">
+            <span class="tc-price">Pro</span>
+            <span class="tc-btn">Usar →</span>
+          </div>
+        </div>
+      </div>
+      <div class="template-card">
+        <div class="tc-preview tc-p3">🎨</div>
+        <div class="tc-body">
+          <h4>Brand Identity Pack</h4>
+          <p>Sistema de identidad completo: naming, paleta, tipografía, voz y guía de estilo.</p>
+          <div class="tc-footer">
+            <span class="tc-price">Pro</span>
+            <span class="tc-btn">Usar →</span>
+          </div>
+        </div>
+      </div>
+      <div class="template-card">
+        <div class="tc-preview tc-p4">📈</div>
+        <div class="tc-body">
+          <h4>Growth Playbook</h4>
+          <p>Estrategia de crecimiento con canales, experimentos priorizados y OKRs trimestrales.</p>
+          <div class="tc-footer">
+            <span class="tc-price">Pro</span>
+            <span class="tc-btn">Usar →</span>
+          </div>
+        </div>
+      </div>
+      <div class="template-card">
+        <div class="tc-preview tc-p5">📚</div>
+        <div class="tc-body">
+          <h4>Curso Online Completo</h4>
+          <p>Estructura curricular, materiales por módulo, evaluaciones y sistema de certificación.</p>
+          <div class="tc-footer">
+            <span class="tc-price">Gratis</span>
+            <span class="tc-btn">Usar →</span>
+          </div>
+        </div>
+      </div>
+      <div class="template-card">
+        <div class="tc-preview tc-p6">🤝</div>
+        <div class="tc-body">
+          <h4>Sales Deck Investor-Ready</h4>
+          <p>Presentación de 12 slides con narrativa, datos financieros y propuesta de valor clara.</p>
+          <div class="tc-footer">
+            <span class="tc-price">Pro</span>
+            <span class="tc-btn">Usar →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EMAIL CAPTURE -->
+<section id="email-capture">
+  <div class="blob-ec"></div>
+  <div class="container">
+    <div class="ec-inner fade-in">
+      <span class="ec-tag">⚡ Acceso anticipado</span>
+      <h2>30% de descuento<br>en el lanzamiento</h2>
+      <p>Entra en la lista de fundadores. Precio bloqueado para siempre, acceso prioritario a cada nuevo artefacto.</p>
+      <div class="ec-form">
+        <input class="ec-input" type="email" placeholder="tu@email.com" />
+        <button class="ec-btn">Reservar mi plaza →</button>
+      </div>
+      <p class="ec-note">Sin spam. Solo artefactos que importan. Cancela cuando quieras.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="blob blob1"></div>
+  <div class="container">
+    <div class="section-header fade-in">
+      <span class="section-tag">// Precios</span>
+      <h2>El plan correcto para<br>cada etapa</h2>
+      <p>Sin compromisos a largo plazo. Cancela cuando quieras.</p>
+    </div>
+
+    <div class="urgency-banner fade-in">
+      <span class="fire">🔥</span>
+      <span class="urgency-cupos">47</span>
+      <p><strong>cupos al precio fundador</strong> — Precio de lanzamiento activo ahora</p>
+    </div>
+
+    <div class="pricing-grid fade-in">
+      <!-- FREE -->
+      <div class="pricing-card">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price"><sup>€</sup>0<sub>/mes</sub></div>
+        <div class="plan-desc">1 skill gratuito + acceso a la comunidad Discord.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Skill gratuito Traductor Universal</li>
+          <li>Acceso a comunidad Discord</li>
+          <li>Newsletter semanal</li>
+          <li>3 prompts de muestra</li>
+          <li class="dim">Biblioteca de skills</li>
+          <li class="dim">Packs de prompts</li>
+          <li class="dim">Actualizaciones semanales</li>
+        </ul>
+        <button class="plan-btn outline">Comenzar gratis</button>
+      </div>
+
+      <!-- PRO (featured) -->
+      <div class="pricing-card featured">
+        <span class="featured-badge">⚡ Más popular</span>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price"><sup>€</sup>29<sub>/mes</sub></div>
+        <div class="plan-desc">Acceso a toda la biblioteca + actualizaciones semanales + soporte prioritario.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Todos los skills agénticos</li>
+          <li>Todos los packs de prompts</li>
+          <li>Actualizaciones semanales</li>
+          <li>Soporte prioritario</li>
+          <li>Templates Pro incluidos</li>
+          <li>Comunidad Discord Pro</li>
+          <li class="dim">Licencia multi-usuario</li>
+        </ul>
+        <button class="plan-btn filled">Activar Pro ahora</button>
+      </div>
+
+      <!-- TEAMS -->
+      <div class="pricing-card">
+        <div class="plan-name">Teams</div>
+        <div class="plan-price"><sup>€</sup>79<sub>/mes</sub></div>
+        <div class="plan-desc">Todo en Pro + licencia para 5 usuarios + workshops mensuales en vivo.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li>Todo lo de Pro</li>
+          <li>Licencia para 5 usuarios</li>
+          <li>Workshops mensuales en vivo</li>
+          <li>API Access completo</li>
+          <li>Skills personalizados</li>
+          <li>Soporte dedicado</li>
+          <li>Onboarding privado</li>
+        </ul>
+        <button class="plan-btn outline">Contactar ventas</button>
+      </div>
+    </div>
+
+    <div class="pricing-guarantee fade-in">
+      ✅ <strong>Garantía 14 días</strong> — Si no te sirve, te devolvemos el 100%. Sin preguntas.
+    </div>
+  </div>
+</section>
+
+<!-- COMUNIDAD -->
+<section id="comunidad">
+  <div class="blob-c"></div>
+  <div class="container">
+    <div class="com-inner fade-in">
+      <span class="section-tag">// Comunidad</span>
+      <h2>Únete a la fragua</h2>
+      <span class="com-subtitle">Prelude Forge · La fragua de la IA prohibida</span>
+      <p>El espacio donde los builders hispanohablantes comparten artefactos, explotan el stack chino y construyen lo que el resto no se atreve a intentar.</p>
+      <div class="com-actions">
+        <a href="#" class="btn-discord">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+          Unirse al Discord
+        </a>
+        <a href="#" class="btn-prelude">
+          🎓 Ver Prelude Forge en Skool
+        </a>
+      </div>
+      <div class="com-stats">
+        <div class="com-stat"><strong>500+</strong><span>builders activos</span></div>
+        <div class="com-stat"><strong>Diario</strong><span>Contenido exclusivo</span></div>
+        <div class="com-stat"><strong>ZH · ES · EN</strong><span>Stack chino exclusivo</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="logo">Artefact<span>Forge</span></span>
+        <p>La plataforma para creadores que construyen con inteligencia. Forja artefactos que importan.</p>
+        <div class="footer-social">
+          <a href="#" class="social-btn">𝕏</a>
+          <a href="#" class="social-btn">in</a>
+          <a href="#" class="social-btn">⬡</a>
+          <a href="#" class="social-btn">◎</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h5>Producto</h5>
+        <ul>
+          <li><a href="#skills">Skills</a></li>
+          <li><a href="#prompts">Prompts</a></li>
+          <li><a href="#workflows">Workflows</a></li>
+          <li><a href="#templates">Templates</a></li>
+          <li><a href="#pricing">Precios</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Recursos</h5>
+        <ul>
+          <li><a href="#">Documentación</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Changelog</a></li>
+          <li><a href="#">API Docs</a></li>
+          <li><a href="#">Status</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Empresa</h5>
+        <ul>
+          <li><a href="#">Sobre nosotros</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Privacidad</a></li>
+          <li><a href="#">Términos</a></li>
+          <li><a href="#">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 ArtefactForge — artefactforge.ai · Todos los derechos reservados.</p>
+      <div class="footer-links">
+        <a href="#">Privacidad</a>
+        <a href="#">Términos</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Fade-in on scroll
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); }
+    }),
+    { threshold: 0.1 }
+  );
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // Nav active link
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav ul li a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 120) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.style.color = a.getAttribute('href') === '#' + current ? '#e2e8f0' : '';
+    });
+  });
+</script>
+</body>
+</html>
