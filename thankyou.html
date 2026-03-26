@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Estás dentro! — ArtefactForge</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #080810;
+      --bg2:     #0d0d1a;
+      --surface: rgba(255,255,255,0.04);
+      --border:  rgba(255,255,255,0.10);
+      --accent1: #7c3aed;
+      --accent2: #06b6d4;
+      --accent3: #a855f7;
+      --text:    #e2e8f0;
+      --muted:   #94a3b8;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* Noise overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0; opacity: .5;
+    }
+
+    /* Blobs */
+    .blob {
+      position: fixed; border-radius: 50%;
+      filter: blur(120px); pointer-events: none; z-index: 0;
+    }
+    .blob1 { width: 600px; height: 600px; background: var(--accent1); opacity: .15; top: -10%; left: -15%; }
+    .blob2 { width: 500px; height: 500px; background: var(--accent2); opacity: .10; bottom: -10%; right: -10%; }
+
+    /* Main */
+    main {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 860px;
+      padding: 60px 24px;
+      text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 48px;
+    }
+
+    /* Logo */
+    .logo {
+      font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent3), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    /* Hero text */
+    .hero-text { display: flex; flex-direction: column; gap: 16px; }
+    .check-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 8px;
+      font-size: 2rem;
+      box-shadow: 0 0 40px rgba(124,58,237,0.4);
+    }
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 30%, var(--accent3) 70%, var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      font-size: 1.2rem;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Steps grid */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 20px;
+      width: 100%;
+    }
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 24px;
+      backdrop-filter: blur(20px);
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      transition: transform .2s, border-color .2s;
+    }
+    .step-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .step-num {
+      font-size: .75rem; font-weight: 700; letter-spacing: 2px; color: var(--accent3);
+      text-transform: uppercase;
+    }
+    .step-card h3 { font-size: 1.1rem; font-weight: 700; }
+    .step-card p { font-size: .9rem; color: var(--muted); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 12px 24px; border-radius: 10px;
+      font-size: .95rem; font-weight: 700;
+      transition: opacity .2s, transform .15s;
+      cursor: pointer; border: none; width: 100%;
+    }
+    .btn:hover { opacity: .85; transform: translateY(-1px); }
+    .btn-discord { background: #5865F2; color: #fff; }
+    .btn-x { background: #000; color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+    .btn-web {
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #fff;
+    }
+
+    /* Footer note */
+    .footer-note {
+      color: var(--muted);
+      font-size: .9rem;
+      border-top: 1px solid var(--border);
+      padding-top: 32px;
+      width: 100%;
+    }
+    .footer-note strong { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+
+  <main>
+    <!-- Logo -->
+    <a href="https://artefactforge.ai" class="logo">ArtefactForge</a>
+
+    <!-- Hero -->
+    <div class="hero-text">
+      <div class="check-icon">✓</div>
+      <h1>¡Estás dentro!</h1>
+      <p class="subtitle">Te hemos reservado tu plaza con <strong style="color:#4ade80">30% de descuento</strong> para el lanzamiento.</p>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps">
+      <!-- Paso 1 -->
+      <div class="step-card">
+        <span class="step-num">Paso 1</span>
+        <h3>Únete a la comunidad</h3>
+        <p>Conecta con otros builders y recibe acceso exclusivo antes del lanzamiento.</p>
+        <a href="https://discord.gg/artefactforge" class="btn btn-discord">Entrar al Discord</a>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="step-card">
+        <span class="step-num">Paso 2</span>
+        <h3>Síguenos en X</h3>
+        <p>Primero en ver cada nuevo artefacto, tutorial y lanzamiento exclusivo.</p>
+        <a href="https://x.com/artefactforge" class="btn btn-x" target="_blank" rel="noopener">Seguir @artefactforge</a>
+      </div>
+
+      <!-- Paso 3 -->
+      <div class="step-card">
+        <span class="step-num">Paso 3</span>
+        <h3>Explora la web</h3>
+        <p>Descubre los skills y workflows ya disponibles para empezar hoy.</p>
+        <a href="https://artefactforge.ai" class="btn btn-web">Ver skills disponibles</a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <p class="footer-note">
+      <strong>Te enviaremos un email cuando lancemos.</strong> Prepárate.
+    </p>
+  </main>
+</body>
+</html>
